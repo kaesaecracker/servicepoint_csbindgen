@@ -311,9 +311,9 @@ fn emit_csharp_method_groups(
                 };
 
                 if into_params.contains(&p.name) {
-                    result.push_str(".Into()");
+                    result.push_str(".__Into()");
                 } else if is_mapped_type(&p.rust_type).is_some() {
-                    result.push_str(".Instance");
+                    result.push_str(".__Instance");
                 }
 
                 result
@@ -443,7 +443,7 @@ fn emit_csharp_method_groups(
 
                 let machinery = format!(
                     r#"        private {rust_type}* _instance;
-        internal {rust_type}* Instance
+        internal {rust_type}* __Instance
         {{
             get
             {{
@@ -459,26 +459,26 @@ fn emit_csharp_method_groups(
             _instance = instance;
         }}
 
-        internal {rust_type}* Into()
+        internal {rust_type}* __Into()
         {{
-            var instance = Instance;
+            var instance = __Instance;
             _instance = null;
             return instance;
         }}
 
-        private void Free()
+        private void __Free()
         {{
             if (_instance != null)
-                {class_name}.{rust_prefix}free(Into());
+                {class_name}.{rust_prefix}free(__Into());
         }}
 
         public void Dispose()
         {{
-            Free();
+            __Free();
             GC.SuppressFinalize(this);
         }}
 
-        ~{class_name}() => Free();
+        ~{class_name}() => __Free();
             "#
                 );
 
